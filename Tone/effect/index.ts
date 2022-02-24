@@ -4,6 +4,7 @@ export * from "./AutoWah";
 export * from "./BitCrusher";
 export * from "./Chebyshev";
 export * from "./Chorus";
+export * from "./Chorus1";
 export * from "./Distortion";
 export * from "./FeedbackDelay";
 export * from "./FrequencyShifter";
