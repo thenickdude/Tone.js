@@ -5,7 +5,7 @@ import { Gain } from "../core/context/Gain";
 import { optionsFromArguments } from "../core/util/Defaults";
 import { connectSeries } from "../core/context/ToneAudioNode";
 import { Param } from "../core/context/Param";
-import { workletName } from "./BitCrusher.worklet";
+import { BitCrusherProcessor, workletName } from "./BitCrusherProcessor";
 
 export interface BitCrusherOptions extends EffectOptions {
 	bits: Positive;
@@ -111,6 +111,10 @@ class BitCrusherWorklet extends ToneAudioWorklet<BitCrusherWorkletOptions> {
 
 	protected _audioWorkletName(): string {
 		return workletName;
+	}
+
+	protected _audioWorkletConstructor(): any {
+		return BitCrusherProcessor;
 	}
 
 	onReady(node: AudioWorkletNode) {

@@ -1,10 +1,7 @@
 import {
 	AudioContext as stdAudioContext,
-	AudioWorkletNode as stdAudioWorkletNode,
 	OfflineAudioContext as stdOfflineAudioContext
 } from "standardized-audio-context";
-import { assert } from "../util/Debug";
-import { isDefined } from "../util/TypeCheck";
 
 /**
  * Create a new AudioContext
@@ -47,9 +44,7 @@ export const hasAudioContext = theWindow &&
 	(theWindow.hasOwnProperty("AudioContext") || theWindow.hasOwnProperty("webkitAudioContext"));
 
 export function createAudioWorkletNode(context: AnyAudioContext, name: string, options?: Partial<AudioWorkletNodeOptions>): AudioWorkletNode {
-	assert(isDefined(stdAudioWorkletNode), "This node only works in a secure context (https or localhost)");
-	// @ts-ignore
-	return new stdAudioWorkletNode(context, name, options);
+	return new AudioWorkletNode(context, name, options);
 }
 
 /**

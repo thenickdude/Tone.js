@@ -1,6 +1,5 @@
 import { ToneAudioNode, ToneAudioNodeOptions } from "../context/ToneAudioNode";
 import { noOp } from "../util/Interface";
-import { getWorkletGlobalScope } from "./WorkletGlobalScope";
 
 export type ToneAudioWorkletOptions = ToneAudioNodeOptions;
 
@@ -34,6 +33,11 @@ export abstract class ToneAudioWorklet<Options extends ToneAudioWorkletOptions> 
 	protected abstract _audioWorkletName(): string;
 
 	/**
+	 * Get the constructor of the audio worklet
+	 */
+	protected abstract _audioWorkletConstructor(): any;
+
+	/**
 	 * Invoked when the module is loaded and the node is created
 	 */
 	protected abstract onReady(node: AudioWorkletNode): void;
@@ -43,17 +47,19 @@ export abstract class ToneAudioWorklet<Options extends ToneAudioWorkletOptions> 
 	 */
 	onprocessorerror: (e: string) => void = noOp;
 
-	constructor(options: Options) {
+	protected constructor(options: Options) {
 		super(options);
 
-		const blobUrl = URL.createObjectURL(new Blob([getWorkletGlobalScope()], { type: "text/javascript" }));
 		const name = this._audioWorkletName();
 
 		this._dummyGain = this.context.createGain();
 		this._dummyParam = this._dummyGain.gain;
 
 		// Register the processor
-		this.context.addAudioWorkletModule(blobUrl, name).then(() => {
+		this.context.rawContext.audioWorklet.addModule(name, <WorkletOptions> {
+			name,
+			processorCtor: this._audioWorkletConstructor()
+		}).then(() => {
 			// create the worklet when it's read
 			if (!this.disposed) {
 				this._worklet = this.context.createAudioWorkletNode(name, this.workletOptions);

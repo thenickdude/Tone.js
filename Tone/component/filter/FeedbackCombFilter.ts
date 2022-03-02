@@ -5,7 +5,7 @@ import { NormalRange, Time } from "../../core/type/Units";
 import { optionsFromArguments } from "../../core/util/Defaults";
 import { readOnly, RecursivePartial } from "../../core/util/Interface";
 import { ToneAudioWorklet } from "../../core/worklet/ToneAudioWorklet";
-import { workletName } from "./FeedbackCombFilter.worklet";
+import { FeedbackCombFilterProcessor, workletName } from "./FeedbackCombFilterProcessor";
 
 export interface FeedbackCombFilterOptions extends ToneAudioNodeOptions {
 	delayTime: Time;
@@ -74,6 +74,10 @@ export class FeedbackCombFilter extends ToneAudioWorklet<FeedbackCombFilterOptio
 
 	protected _audioWorkletName(): string {
 		return workletName;
+	}
+
+	protected _audioWorkletConstructor(): any {
+		return FeedbackCombFilterProcessor;
 	}
 
 	/**
