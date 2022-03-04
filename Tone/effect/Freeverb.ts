@@ -1,13 +1,15 @@
 import { StereoEffect, StereoEffectOptions } from "./StereoEffect";
-import { Frequency, NormalRange } from "../core/type/Units";
+import { Frequency, GainFactor, NormalRange } from "../core/type/Units";
 import { optionsFromArguments } from "../core/util/Defaults";
 import { readOnly } from "../core/util/Interface";
 import { Signal } from "../signal/Signal";
 import { LowpassCombFilter } from "../component/filter/LowpassCombFilter";
+import { OnePoleFilter } from "../component";
 
 export interface FreeverbOptions extends StereoEffectOptions {
 	dampening: Frequency;
 	roomSize: NormalRange;
+	wetGain: GainFactor;
 }
 
 /**
@@ -41,6 +43,8 @@ export class Freeverb extends StereoEffect<FreeverbOptions> {
 	 */
 	readonly roomSize: Signal<"normalRange">;
 
+	readonly wetGain: Signal<"gain">;
+
 	/**
 	 * the comb filters
 	 */
@@ -59,18 +63,26 @@ export class Freeverb extends StereoEffect<FreeverbOptions> {
 	/**
 	 * @param roomSize Correlated to the decay time.
 	 * @param dampening The cutoff frequency of a lowpass filter as part of the reverb.
+	 * @param wetGain Allows to change the volume of the signal input into the wet
+	 *                  branch of the filter. Doesn't affect dry output volume.
 	 */
-	constructor(roomSize?: NormalRange, dampening?: Frequency);
+	constructor(roomSize?: NormalRange, dampening?: Frequency, wetGain?: GainFactor);
 	constructor(options?: Partial<FreeverbOptions>);
 	constructor() {
 
-		super(optionsFromArguments(Freeverb.getDefaults(), arguments, ["roomSize", "dampening"]));
-		const options = optionsFromArguments(Freeverb.getDefaults(), arguments, ["roomSize", "dampening"]);
+		super(optionsFromArguments(Freeverb.getDefaults(), arguments, ["roomSize", "dampening", "wetGain"]));
+		const options = optionsFromArguments(Freeverb.getDefaults(), arguments, ["roomSize", "dampening", "wetGain"]);
 
 		this.roomSize = new Signal({
 			context: this.context,
 			value: options.roomSize,
 			units: "normalRange",
+		});
+
+		this.wetGain = new Signal({
+			context: this.context,
+			value: options.wetGain,
+			units: "gain",
 		});
 
 		// make the allpass filters on the right
@@ -101,17 +113,19 @@ export class Freeverb extends StereoEffect<FreeverbOptions> {
 			} else {
 				this.connectEffectRight(lfpf, ...this._allpassFiltersR);
 			}
+			this.wetGain.connect((lfpf.input as OnePoleFilter).input.gain);
 			this.roomSize.connect(lfpf.resonance);
 			return lfpf;
 		});
 
-		readOnly(this, ["roomSize"]);
+		readOnly(this, ["roomSize", "wetGain"]);
 	}
 
 	static getDefaults(): FreeverbOptions {
 		return Object.assign(StereoEffect.getDefaults(), {
 			roomSize: 0.7,
-			dampening: 3000
+			dampening: 3000,
+			wetGain: 1
 		});
 	}
 
@@ -132,6 +146,7 @@ export class Freeverb extends StereoEffect<FreeverbOptions> {
 		this._allpassFiltersR.forEach(ar => ar.disconnect());
 		this._combFilters.forEach(cf => cf.dispose());
 		this.roomSize.dispose();
+		this.wetGain.dispose();
 		return this;
 	}
 }
