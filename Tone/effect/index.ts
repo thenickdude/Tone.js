@@ -9,6 +9,7 @@ export * from "./Distortion";
 export * from "./FeedbackDelay";
 export * from "./FrequencyShifter";
 export * from "./Freeverb";
+export * from "./Freeverb1";
 export * from "./JCReverb";
 export * from "./PingPongDelay";
 export * from "./PitchShift";
